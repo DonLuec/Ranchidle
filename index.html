@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Idle Ranch: Vollversion</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f4fff4; }
+    button { margin: 5px; padding: 10px; }
+    .section { margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; background: #fff; }
+    .tabs { margin-bottom: 10px; }
+    .tabs button { margin-right: 5px; }
+    .tab-content { display: none; }
+    .tab-active { display: block; }
+    .statusbar {
+      font-size: 1.1em;
+      margin-bottom: 10px;
+      background: #ddf8dd;
+      padding: 10px;
+      border-radius: 6px;
+      display: flex;
+      gap: 20px;
+    }
+    .statusbar span {
+      transition: all 0.3s ease;
+    }
+    .statusbar .updated {
+      color: green;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>🐄 Idle Ranch</h1>
+
+  <div class="statusbar">
+    <div>⭐ Level: <span id="level">1</span></div>
+    <div>📈 XP: <span id="xp">0</span>/<span id="nextXp">50</span></div>
+    <div>🌿 Gras: <span id="grasGlobal">0</span></div>
+    <div>💰 Gold: <span id="goldGlobal">0</span></div>
+  </div>
+
+  <div class="tabs">
+    <button onclick="zeigeReiter('hof')">🏡 Hof</button>
+    <button onclick="zeigeReiter('weide')">🌾 Weide</button>
+    <button onclick="zeigeReiter('stall')">🐮 Stall</button>
+    <button onclick="zeigeReiter('zucht')">🧬 Zucht</button>
+    <button onclick="zeigeReiter('markt')">🛒 Markt</button>
+    <button onclick="zeigeReiter('guelle')">🚜 Güllefass</button>
+    <button onclick="zeigeReiter('forschung')">🔬 Forschung</button>
+    <button onclick="zeigeReiter('quests'); renderQuestTab()">📜 Quests</button>
+  </div>
+
+  <div id="hof" class="tab-content tab-active">
+    <div class="section">
+      <h2>🏡 Hofübersicht</h2>
+      <p>🐄 Kühe: <span id="kühe">0</span> / 30</p>
+      <p>🐮 Kälber: <span id="kälber">0</span></p>
+      <p>📈 Aktives Einkommen: <span id="einkommenAktiv">+5</span> Gras/Klick</p>
+      <p>⚙️ Passives Einkommen: <span id="einkommenPassiv">+0</span> Gras/Sek.</p>
+      <p>🔥 Grasverbrauch: <span id="grasVerbrauch">0</span> Gras/Sek.</p>
+      <p>💸 Goldverbrauch: <span id="goldVerbrauch">0</span> Gold/Sek.</p>
+    </div>
+  </div>
+
+  <div id="weide" class="tab-content">
+    <div class="section">
+      <h2>🌾 Weide</h2>
+      <button onclick="sammleGras()">🌿 Gras ernten (+<span id='grasProKlick'>5</span>)</button>
+      <button onclick="verkaufeGras()">💰 10 Gras verkaufen ➔ 1 Gold</button>
+      <button onclick="verkaufeAllesGras()">💰 Alles verkaufen</button>
+    </div>
+    <div class="section">
+      <h3>🏩 Silo</h3>
+      <p>Kapazität: <span id="siloFuellstand">0</span> / <span id="siloKapazitaet">100</span> Gras <button onclick="upgradeSilo()">📦 Upgrade (15 Gold)</button></p>
+    </div>
+    <div class="section">
+      <h3>👨‍🌾 Helfer</h3>
+      <p>📊 Weidegröße: <span id="weideFelder">100</span> Felder</p>
+      <p>✅ Genutzte Fläche: <span id="genutzteFelder">0</span> / <span id="weideFrei">100</span></p>
+      <p>Helfer eingestellt: <span id="helferCount">0</span></p>
+      <button onclick="upgradeWeide()">⛏️ Weide erweitern (50 Gold)</button>
+      <button onclick="kaufeHelfer()">👷‍♂️ Helfer einstellen (20 Gold)</button>
+      <div id="helferListeUI"></div>
+    </div>
+  </div>
+
+  <div id="stall" class="tab-content">
+    <div class="section">
+      <h2>🐮 Stall</h2>
+      <p>Hier verwaltest du deine erwachsenen Kühe und Bullen.</p>
+      <div id="stallKuhListe"></div>
+      <div id="stallBullenListe"></div>
+      <button onclick="ausbauenStall('klein')">🔧 Kleinstall ausbauen</button>
+      <button onclick="ausbauenStall('mittel')">🔧 Mittelstall freischalten</button>
+      <button onclick="ausbauenStall('gross')">🔧 Großstall freischalten</button>
+    </div>
+  </div>
+
+  <div id="zucht" class="tab-content">
+    <div class="section">
+      <h2>🧬 Zuchtstall</h2>
+      <p>Zuchtstation für 2 Kälber – Attribute zeigen sich mit der Zeit.</p>
+      <div id="zuchtKälberListe"></div>
+    </div>
+  </div>
+
+  <div id="markt" class="tab-content">
+    <div class="section">
+      <h2>🛒 Markt</h2>
+      <p>Verkaufe 10 Gülle für 5 Gold:</p>
+      <button onclick="verkaufeGuelle()">💩 Gülle verkaufen</button>
+    </div>
+  </div>
+
+  <div id="guelle" class="tab-content">
+    <div class="section">
+      <h2>🚜 Güllefass</h2>
+      <p>Füllstand: <span id="guelleFuellstand">0</span> / 100</p>
+      <button onclick="duengeFeld()">🌱 Feld düngen (30 Gülle)</button>
+      <p id="duengeStatus">📃 Kein Düngungseffekt aktiv.</p>
+    </div>
+  </div>
+
+  <div id="forschung" class="tab-content">
+    <div class="section">
+      <h2>🔬 Forschung</h2>
+      <p><button onclick="forscheGraspressen()">🔩 Graspressen freischalten (50 Gold)</button> <span id="statusGraspressen">❌</span></p>
+      <p><button onclick="forscheGuellefass()">🚜 Güllefass erforschen (75 Gold)</button> <span id="statusGuellefass">❌</span></p>
+    </div>
+  </div>
+
+  <div id="quests" class="tab-content">
+    <div class="section">
+      <h2>📜 Quests</h2>
+      <div id="questContainer"></div>
+    </div>
+  </div>
+
+  
+<script src="main.js" defer></script>
+<script src="spielmechanik.js" defer></script>
+<script src="zucht.js" defer></script>
+<script src="quests.js" defer></script>
+</body>
+</html>
